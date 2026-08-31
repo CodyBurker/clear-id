@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clear-id"
+version = "0.1.0"
+description = "Deterministic, memorable adjective-adjective-noun phrase digests for arbitrary strings"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Cody Burker" }]
+keywords = ["hash", "digest", "identifier", "memorable", "human-readable"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.scripts]
+clear-id = "clear_id.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+clear_id = ["wordlists/*.txt"]

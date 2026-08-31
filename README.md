@@ -1,0 +1,176 @@
+# clear-id
+
+Deterministic, memorable phrase digests for arbitrary strings.
+
+`clear-id` hashes any string with SHA-256 and maps the hash to an
+**adjective-adjective-noun** phrase built from common English words:
+
+```python
+>>> from clear_id import phrase_id
+>>> phrase_id("user@example.com")
+'vivid-casual-shampoo'
+>>> phrase_id("hello world")
+'devoted-plausible-baron'
+```
+
+The same input always yields the same phrase, no word ever repeats within a
+phrase, and every word is common enough that a native English speaker will
+recognize it. The goal is a *memorable* stand-in for opaque identifiers —
+`devoted-plausible-baron` sticks in the head; `a591a6d40bf42040` does not.
+
+## Usage
+
+```python
+from clear_id import phrase_id, phrase_space, collision_probability, capacity
+
+phrase_id("some-opaque-id")                    # 'adj-adj-noun'
+phrase_id("some-opaque-id", adjectives=3)      # bigger space: 'adj-adj-adj-noun'
+phrase_id("some-opaque-id", separator=" ")     # 'adj adj noun'
+
+phrase_space()                 # 22_973_328 distinct phrases (default shape)
+collision_probability(100)     # chance any 2 of 100 inputs share a phrase
+capacity(0.0001)               # max inputs with ≤0.01% total collision odds
+```
+
+Command line:
+
+```console
+$ clear-id "hello world"
+devoted-plausible-baron
+$ clear-id --stats
+phrase space: 22,973,328
+capacity at 0.01% collision probability: 68
+$ printf 'a\nb\n' | clear-id        # one phrase per stdin line
+```
+
+Install for development with `pip install -e .` and run tests with `pytest`.
+
+## How it works
+
+1. The input (UTF-8 encoded if a `str`) is hashed with **SHA-256**, giving
+   256 uniformly distributed bits.
+2. The hash, read as one big integer, is decoded in a mixed-radix scheme:
+   the first `divmod` picks the noun (504 choices), the next picks the
+   first adjective (214 choices), the next picks the second adjective from
+   the *213 remaining* adjectives — sampling without replacement, which is
+   what guarantees a phrase never repeats a word. The adjective and noun
+   lists are also disjoint, so the noun can't echo an adjective either.
+3. The phrase is the adjectives followed by the noun, joined with `-`.
+
+Every distinct phrase corresponds to exactly the same number of hash
+values (up to a modulo bias below 2⁻¹⁷⁰ — unmeasurable), so phrases are
+uniform over the whole space and the standard birthday analysis below
+applies directly.
+
+**Stability contract:** existing outputs must never change, so the word
+lists are frozen and covered by golden tests. Editing the lists is a
+breaking change that requires a major version bump.
+
+## Collision analysis
+
+With `A = 214` adjectives and `N = 504` nouns, the phrase space is
+
+```
+M = A · (A−1) · N = 214 · 213 · 504 = 22,973,328
+```
+
+Because SHA-256 output is uniform, hashing `n` distinct inputs is throwing
+`n` balls into `M` equally likely bins, and the probability that *any* two
+share a phrase is the birthday bound:
+
+```
+p(n) = 1 − exp(−n(n−1) / 2M)  ≈  n² / 2M   for small p
+```
+
+Measured against the default space (verified empirically by a test that
+hashes 100,000 random strings and counts colliding pairs — the observed
+count matches the predicted ~218):
+
+| inputs n | collision probability p(n) |
+|---------:|---------------------------:|
+|       10 | 0.0002 % |
+|       50 | 0.0053 % |
+|   **68** | **0.0099 % — last n under the 0.01 % target** |
+|      100 | 0.022 % |
+|    1,000 | 2.2 % |
+|   10,000 | 88.7 % |
+
+Two ways to read "0.01 % collision likelihood":
+
+* **Whole-namespace guarantee** (any two of your n items collide):
+  holds up to **n = 68** items with the default 3-word phrase. This is the
+  strict reading, and it's what `capacity(0.0001)` returns.
+* **Per-new-item risk** (the next item collides with one of n existing):
+  that chance is `n / M`, which stays under 0.01 % until **n = 2,297**
+  items.
+
+The birthday bound grows with n², so if your namespace is bigger, add an
+adjective — each one multiplies the space by ~212:
+
+| shape | phrase space | capacity @ 0.01 % | capacity @ 1 % |
+|---|---:|---:|---:|
+| adj-noun (`adjectives=1`) | 107,856 | 5 | 47 |
+| adj-adj-noun (default) | 22,973,328 | 68 | 680 |
+| adj-adj-adj-noun | 4.87 × 10⁹ | 987 | 9,894 |
+| adj-adj-adj-adj-noun | 1.03 × 10¹² | 14,337 | 143,723 |
+
+If you are *assigning* identifiers (rather than fingerprinting existing
+ones), you can sidestep collisions entirely: keep a uniqueness check and
+on a hit re-derive with a salt (`phrase_id(f"{key}#1")`). Then the phrase
+space only needs to be large, not collision-free.
+
+**Not a security feature.** Phrases carry ~24.5 bits of the hash (~32 bits
+with three adjectives). They are memorable labels, not unforgeable ones:
+anyone can find another input mapping to the same phrase by brute force in
+seconds. Keep the underlying key as the real identity; show the phrase.
+
+## Word lists
+
+Lists live in [`src/clear_id/wordlists/`](src/clear_id/wordlists/) and are
+generated by [`scripts/build_wordlists.py`](scripts/build_wordlists.py):
+
+* **Candidates** come from the public-domain (CC0)
+  [dariusk/corpora](https://github.com/dariusk/corpora) word lists —
+  the base adjective and noun lists plus concrete-noun sets (common
+  animals, fruits, vegetables, flowers, instruments, everyday objects)
+  and a small hand-curated set of vivid common adjectives.
+* **Frequency filter:** every word must reach Zipf frequency ≥ 3.5 in the
+  [`wordfreq`](https://pypi.org/project/wordfreq/) corpus (≥ ~3 occurrences
+  per million words of running English), which keeps the vocabulary inside
+  what native speakers actually know.
+* **Part-of-speech check:** WordNet must list the word under the right part
+  of speech, which removes corpora mis-taggings like "accountant" (as an
+  adjective) and "apologise" (as a noun).
+* **Readability heuristics and blocklist:** plural nouns, awkward
+  participles/gerunds ("arrested", "betting"), comparatives ("tougher"),
+  first names, trademarks, and words tied to violence, illness, crime, or
+  crudeness are removed — nobody wants to be `sickly-guilty-lawsuit`.
+
+The generated files are committed, so the library itself is dependency-free
+at runtime; the build script (needing `wordfreq` and `nltk`) only runs when
+regenerating the lists.
+
+## Prior art
+
+This idea exists in several forms — `clear-id` is a from-scratch take with
+frequency-vetted word lists and documented collision math:
+
+* [codenamize](https://github.com/jjmontesl/codenamize) (Python, MIT) — the
+  closest relative: deterministic adjective(s)-noun codenames from a string
+  via MD5. Differences here: SHA-256, no-repeat and disjoint-list
+  guarantees, frequency/POS-filtered lists, explicit capacity math.
+* [humanhash](https://github.com/zacharyvoase/humanhash) — hex digest →
+  4 words from a 256-word list (`wichita-oscar-wisconsin-heart`); words are
+  arbitrary rather than forming a grammatical phrase.
+* Docker's [names-generator](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go)
+  and gfycat-style `AdjectiveAdjectiveAnimal` IDs — same phrase shape, but
+  *random* assignment rather than a deterministic digest of an input.
+* [petname](https://github.com/dustinkirkland/petname) /
+  [coolname](https://pypi.org/project/coolname/) — random readable slug
+  generators, not hashes.
+* [hash-phrase](https://github.com/fpgaminer/hash-phrase) and
+  [mnemonicode](https://github.com/singpolyma/mnemonicode) / the PGP word
+  list — encode a hash as words for read-aloud verification; optimized for
+  encoding capacity, not memorability.
+* [what3words](https://what3words.com/) — three-word addresses for
+  geographic coordinates (proprietary, location-specific).
