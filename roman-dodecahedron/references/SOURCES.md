@@ -1,39 +1,72 @@
-# Reference photos: Norton Disney dodecahedron
+# Sources: Norton Disney dodecahedron
 
-All of these photos show the same object: the copper-alloy dodecahedron found in June 2023 at Norton Disney, Lincolnshire, by the Norton Disney History and Archaeology Group (NDHAG). Published figures: about 8 cm, 245–254 g.
+## Primary source: specialist report
 
-Only the Geograph photo is included in this repo, because it is openly licensed. The others are copyrighted press photos, so they are linked rather than copied here.
+L. Hitchens (2023), *Roman Dodecahedron*, Appendix 7 of the Allen Archaeology report on the 2023 Norton Disney community excavation for the Norton Disney History and Archaeology Group (NDHAG). It is held by the Archaeology Data Service, record `allenarc1-521355`:
+<https://archaeologydataservice.ac.uk/archiveDS/archiveDownload?t=arch-805-1/dissemination/allenarc1-521355_222037.pdf>
+(see PDF pages 39–42).
+
+Used from it:
+- Table 1: the 27 mm sides, all twelve hole diameters, knob width and projection, and overall sizes.
+- Fig. 2: the face key (letters A–L).
+- The text: ring counts (A one, J three, others two), Face K's especially crisp rings, "robust and short-necked" knobs, and the alloy (Cu 63%, Pb 26%, Sn 8%).
+- Fig. 3: a composite photo with an 8 cm scale bar.
+
+The report's figures are © Lorena Hitchens 2023 and are not copied into this repo.
+
+## Mapping face letters onto the model
+
+`scripts/faces_letters.py` builds the report's lettering on the model's geometry:
+- A is the base, and B is a neighbouring face of A, facing the viewer.
+- Going around the base tier: C is to the left of B, then D and E, and F is to the right of B.
+- G is opposite A.
+- Going around the top tier: H is above-right of B, I above-left, then J, K, L.
+
+It checks the result against Fig. 2's adjacencies (C touches I and J, F touches H and L, K touches D and E).
+
+**Which way up the museum photo is.** The museum photo shows the top face nearly edge-on, so the object is resting with a big-hole face (A or G) on top or bottom. Of the ten orientations this allows, only one puts the tiny 9.9 mm hole (J) at upper-right, as the photo shows:
+
+| Position in the museum photo | Face |
+|---|---|
+| Front | K |
+| Top | G |
+| Upper-left | L |
+| Upper-right | J |
+| Lower-left | E |
+| Lower-right | D |
+
+The report's remark that Face K's rings are especially crisp matches the very crisp front face in that photo. In the `.scad` this is `face_letter = [C, A, E, F, K, D, J, L, G, B, I, H]` for face indices 0–11.
+
+## Knob height
+
+The report gives the knob projection as 8–8.5 mm without saying where it was measured from.
+
+**Measuring from the scale bar.** In the Fig. 3 front view (6.4 px/mm at 400 dpi):
+- The knobs measure 9.0 mm and the overall width 85.3 mm. The report gives 9–9.5 mm and 86 mm, so that view's scale is reliable.
+- The horizontal spacing of the outermost knob centres (76.9 mm) puts the knob centres about 41 mm from the body centre.
+- That means the tip is about 7.4 mm beyond the sharp vertex.
+
+So the report's 8–8.5 mm was most likely measured from the neck base, and v5 uses a 7.4 mm tip beyond the vertex. The vertical spacing gives 44 mm, but that is inflated by perspective because the lower knobs are closer to the camera.
+
+## Wall thickness (estimate)
+
+- **Alloy density:** about 9.3 g/cm³, from the XRF result (Cu 63%, Pb 26%, Sn 8%).
+- **Volume of the original:** 254 g ÷ 9.3 g/cm³ ≈ 27.3 cm³.
+- **Model volume:** v5 with a 2.8 mm wall is 39.0 cm³.
+- **Working back:** the cavity surface is about 87.5 cm². Removing the 11.7 cm³ difference over that area means the original wall is about 1.5 mm.
+
+This is an estimate: it assumes the same relief and knobs as the model.
+
+## Photographs (reference only, not in this repo except #7)
 
 | # | What it shows | Credit / source | Licence |
 |---|---|---|---|
 | 1 | Museum, front view (1920×1080) | NDHAG, via [Lincolnshire County Council](https://www.lincolnshire.gov.uk/news/article/1853/mysterious-roman-dodecahedron-found-in-norton-disney-to-go-on-display-in-lincolnshire-for-the-first-time) | © NDHAG |
-| 2 | Museum, front view (4029×3022), the main reference for v4 | NDHAG, via [NPR/WHRO](https://www.whro.org/2024-01-24/amateur-archaeologists-uncover-a-mysterious-ancient-roman-artifact-in-england) | © NDHAG |
-| 3 | At the dig, looking almost straight at one face (3024×3024) | NDHAG, via [NPR/WHRO](https://www.whro.org/2024-01-24/amateur-archaeologists-uncover-a-mysterious-ancient-roman-artifact-in-england) | © NDHAG |
+| 2 | Museum, front view (4029×3022) | NDHAG, via [NPR/WHRO](https://www.whro.org/2024-01-24/amateur-archaeologists-uncover-a-mysterious-ancient-roman-artifact-in-england) | © NDHAG |
+| 3 | At the dig, looking almost straight at one face | NDHAG, via [NPR/WHRO](https://www.whro.org/2024-01-24/amateur-archaeologists-uncover-a-mysterious-ancient-roman-artifact-in-england) | © NDHAG |
 | 4 | At the dig, another side | [Archaeology Magazine](https://archaeologymag.com/2024/01/roman-dodecahedron-uncovered-in-england/) | © the publisher |
 | 5 | At the dig, looking down on top | NDHAG, via [ScienceAlert](https://www.sciencealert.com/rare-roman-dodecahedron-found-in-england-baffles-archaeologists) | © NDHAG |
 | 6 | Studio shot, dark background | Phil Crow / Alamy, via [Scientific American](https://www.scientificamerican.com/article/why-did-ancient-romans-make-this-baffling-metal-dodecahedron) | © Alamy |
-| 7 | Museum case, smallest hole facing the camera: `geograph_7766991_RichardCroft_CC-BY-SA-2.0.jpg` | Richard Croft, [Geograph SK9771](https://www.geograph.org.uk/photo/7766991) | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) |
+| 7 | Museum case, small-hole side: `geograph_7766991_RichardCroft_CC-BY-SA-2.0.jpg` | Richard Croft, [Geograph SK9771](https://www.geograph.org.uk/photo/7766991) | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) |
 
-## Measurements used for v4
-
-**Scale:** the knob balls look circular from any viewing angle, so I used them as the ruler. In #2 the distance between knob centres along a face edge is 309 px, and in the model it is 26.0 mm. That gives about 0.084 mm/px. The knob diameter comes out at 0.29–0.30 × that edge, about 7.6 mm.
-
-**Holes:** for tilted faces I measured the long axis of the elliptical opening, because that axis isn't shortened by the tilt.
-
-| Face (in the `.scad`) | Where it appears | Estimate |
-|---|---|---|
-| 4 | #2, front | 18.3 mm, used as 18.5 |
-| 8 | #2, top | ~18 mm, used as 17.5 |
-| 7 | #2, upper-left | 22–24 mm, used as 22 so a ring still fits |
-| 6 | #2, upper-right | ~8.5 mm |
-| 2 / 5 | #2, lower-left / lower-right | ~17 mm, used as 17 and 16 |
-| 9 | #3, front (opposite face 4) | ~14 mm |
-| 11 / 10 / 0 | #3, top / upper-left / lower-left | ~15.5 / ~12.5 / ~19 mm |
-| 1, 3 | not clearly visible in any photo | guesses: 10 and 11 mm |
-
-Matching faces between photos #2 and #3 assumes #3 shows the side opposite #2. The vertex-down orientation of both photos and the hole sizes are consistent with that, but it isn't proven.
-
-**Rings:**
-- In #2, grooves sit about 11.1 mm and 13.7 mm from the hole centre, and the outer ring reaches about 16 mm.
-- In #7, around the small hole, grooves sit about 7.5, 10.4 and 13.2 mm from the centre.
-- So the grooves are at a roughly fixed pitch measured in from the face edge, and the raised collar fills whatever space is left around the hole.
+The v4 hole sizes were estimates from these photos. Measured against the report, they came out about 15% small.

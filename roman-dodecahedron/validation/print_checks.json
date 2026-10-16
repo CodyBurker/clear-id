@@ -1,32 +1,33 @@
 {
  "face_wall_min_mm_per_face(grooved zone)": [
-  2.66,
-  2.65,
-  2.69,
-  2.72,
-  2.71,
-  2.66,
-  2.7,
-  2.71,
-  2.69,
-  2.67,
-  2.66,
-  2.65
+  2.47,
+  2.45,
+  2.49,
+  2.52,
+  2.51,
+  2.45,
+  2.5,
+  2.52,
+  2.49,
+  2.47,
+  2.46,
+  2.45
  ],
- "face_wall_min_mm": 2.65,
+ "face_wall_min_mm": 2.45,
  "local_thickness_percentiles_mm(p1,p5,p50)": [
-  2.66,
-  2.87,
-  3.46
+  2.48,
+  2.75,
+  3.33
  ],
- "samples_thinner_than_1.2mm": 4,
- "  ...of which on rounded hole lips/chamfers (expected edge artefact)": 0,
- "  ...of which on the face-border bead (surface ridge on full wall)": 4,
+ "samples_thinner_than_1.2mm": 44,
+ "  ...of which on rounded hole lips/chamfers (expected edge artefact)": 18,
+ "  ...of which on the face-border bead (surface ridge on full wall)": 7,
+ "  ...of which on raised ring flanks (ray crosses a ring sideways)": 19,
  "  ...unexplained": 0,
  "bed_z_mm": 0.0,
- "bed_contact_area_mm2": 81.0,
+ "bed_contact_area_mm2": 107.2,
  "bed_contact_islands": 5,
- "overhang_area_mm2(>45deg from vertical, needs support)": 2602.2,
- "total_area_mm2": 21840.6,
- "height_mm": 63.44
+ "overhang_area_mm2(>45deg from vertical, needs support)": 2443.2,
+ "total_area_mm2": 28398.0,
+ "height_mm": 73.37
 }

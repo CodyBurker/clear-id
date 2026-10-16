@@ -1,6 +1,6 @@
 """Printability checks on the print-oriented STL.
 
-usage: python3 -I printcheck.py model.stl centre_z print_face hole_d_json out_section.png
+usage: python3 printcheck.py model.stl centre_z print_face hole_d_json out_section.png [inradius [edge_round]]
 """
 import sys, json, numpy as np, trimesh
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
@@ -15,12 +15,14 @@ out = {}
 #    inward along -n at radii from the hole lip to the edge of the ring field,
 #    and measure the distance from the outer surface hit to the cavity hit.
 inr = float(sys.argv[6]) if len(sys.argv) > 6 else 27.2
+edge_round = float(sys.argv[7]) if len(sys.argv) > 7 else 1.2
+flat_r = 0.6180340 * (inr - edge_round)        # in-circle of the flat part of a face
 per_face = []
 for i, n in enumerate(N):
     u = np.cross(n, [0, 0, 1] if abs(n[2]) < 0.9 else [1, 0, 0]); u /= np.linalg.norm(u); w = np.cross(n, u)
     rh = hd[i] / 2
     origins = []
-    for r in np.linspace(rh + 1.3, 14.5, 40):          # beyond the rounded lip
+    for r in np.linspace(rh + 1.3, flat_r - 0.3, 40):  # rounded lip -> face edge
         for t in np.linspace(0, 2 * np.pi, 48, endpoint=False):
             origins.append(C + n * (inr + 5) + u * r * np.cos(t) + w * r * np.sin(t))
     origins = np.array(origins); dirs = np.tile(-n, (len(origins), 1))
@@ -56,11 +58,18 @@ def on_border_bead(p):
     v = p - C; i = int(np.argmax(N @ v)); a = v @ N[i]; rr = np.linalg.norm(v - a * N[i])
     return abs(a - inr) < 0.5 and rr > 0.58 * inr
 lip = sum(near_lip(p) for p in pts[thin])
+def on_raised_relief(p):
+    # point above the face plane, i.e. on a raised ring: the ray along a steep
+    # flank normal crosses the ring sideways and exits into the next groove
+    v = p - C; i = int(np.argmax(N @ v)); a = v @ N[i]; rr = np.linalg.norm(v - a * N[i])
+    return a > inr + 0.05 and hd[i] / 2 < rr < flat_r
 bead = sum((not near_lip(p)) and on_border_bead(p) for p in pts[thin])
+relief = sum((not near_lip(p)) and (not on_border_bead(p)) and on_raised_relief(p) for p in pts[thin])
 out["samples_thinner_than_1.2mm"] = int(thin.sum())
 out["  ...of which on rounded hole lips/chamfers (expected edge artefact)"] = int(lip)
 out["  ...of which on the face-border bead (surface ridge on full wall)"] = int(bead)
-out["  ...unexplained"] = int(thin.sum() - lip - bead)
+out["  ...of which on raised ring flanks (ray crosses a ring sideways)"] = int(relief)
+out["  ...unexplained"] = int(thin.sum() - lip - bead - relief)
 
 # 3. Bed contact and overhangs (Z up, bed at z=0).
 zmin = float(m.bounds[0][2])

@@ -28,6 +28,7 @@ ap.add_argument("--azim", type=float, default=0.0)
 ap.add_argument("--fov", type=float, default=17.5)
 ap.add_argument("--front-face", type=int, default=4)
 ap.add_argument("--roll", type=float, default=0.0)
+ap.add_argument("--ortho", type=float, default=0.0, help="parallel projection, half-height in mm")
 a = ap.parse_args()
 
 reader = vtk.vtkSTLReader(); reader.SetFileName(a.stl); reader.Update()
@@ -86,10 +87,18 @@ elif a.view == "print":                # as it sits on the bed, from the side
     pn = FACE_N[a.print_face]; m = -pn
     Rp = rot([-m[1], m[0], 0], -np.arccos(m[2]))
     d = Rp.T @ (d / np.linalg.norm(d)); vu = Rp.T @ vu
+elif a.view == "side":                 # resting on --print-face, looking at --front-face
+    vu = -FACE_N[a.print_face]
+    h = front - (front @ vu) * vu; h /= np.linalg.norm(h)
+    d = rot(np.cross(vu, h), -np.radians(a.elev)) @ h
+    d = rot(vu, np.radians(a.azim)) @ d
 else:
     d = front; vu = up
 cam.SetFocalPoint(0, 0, 0); cam.SetPosition(*(d * 300)); cam.SetViewUp(*vu)
-cam.SetParallelProjection(False); cam.SetViewAngle(a.fov)
+if a.ortho > 0:
+    cam.SetParallelProjection(True); cam.SetParallelScale(a.ortho)
+else:
+    cam.SetParallelProjection(False); cam.SetViewAngle(a.fov)
 ren.ResetCameraClippingRange()
 
 def light(pos, inten, col):

@@ -1,16 +1,16 @@
 {
- "file": "models/roman_dodecahedron_v4.stl",
- "triangles": 485918,
- "vertices": 242939,
+ "file": "models/roman_dodecahedron_v5.stl",
+ "triangles": 475646,
+ "vertices": 237803,
  "bbox_mm": [
-  75.31,
-  76.94,
-  63.44
+  89.36,
+  85.34,
+  73.37
  ],
- "max_radius_mm": 67.23,
+ "max_radius_mm": 77.67,
  "watertight": true,
  "winding_consistent": true,
- "volume_cm3": 29.34,
+ "volume_cm3": 38.97,
  "volume_positive": true,
  "nonmanifold_edges(not_2_faces)": 0,
  "connected_bodies": 1,
