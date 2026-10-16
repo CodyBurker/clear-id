@@ -11,7 +11,8 @@
 // Changes from v4:
 //  * True size: 27 mm pentagon sides (report Table 1) instead of a ~23 mm guess.
 //  * The twelve hole diameters are the report's measurements, placed on faces
-//    A-L following the report's face key (Fig. 2).  Face A (29 mm) is the base.
+//    A-L following the report's face key (Fig. 2) and checked against the
+//    report's photographs (see bottom_tier_reversed).  Face A (29 mm) is the base.
 //  * Ring counts from the report: Face A one ring, Face J three, all others two.
 //  * Knobs 9.25 mm wide projecting 8.25 mm (report: "robust and short-necked",
 //    width slightly greater than projection).  v4's necks were too long.
@@ -29,14 +30,23 @@ edge_round        = 1.2;   // outer edge/corner rounding radius (mm)
 inner_round       = 0.6;   // cavity edge rounding radius (mm)
 
 /* [Openings] (report Table 1, by face letter) */
-//                 A=29  B=20.3  C=13.4  D=19.4  E=20.4  F=20
-//                 G=27  H=17.6  I=17.5  J=9.9   K=16.2  L=17
-// Letters follow the report's key: A base, B front of the base tier, C to its
-// left ... F to its right; G top; H above-right of B, I above-left ... L.
+table_letter = ["A", "B", "C",  "D",  "E",  "F", "G", "H",  "I",  "J", "K",  "L"];
+table_hole   = [ 29, 20.3, 13.4, 19.4, 20.4, 20,  27, 17.6, 17.5, 9.9, 16.2, 17];
+// Face positions follow the report's key (Fig. 2): A base, B front of the base
+// tier, C to its left ... F to its right; G top; H above-right of B, I
+// above-left ... L.  Index i is the .scad face_n[i].
 face_letter = ["C", "A", "E", "F", "K", "D", "J", "L", "G", "B", "I", "H"];
-hole_d      = [13.4, 29, 20.4, 20, 16.2, 19.4, 9.9, 17, 27, 20.3, 17.5, 17.6];
-ring_count  = [2, 1, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2];   // A: 1, J: 3, others 2
-ridge_scale = [1, 1, 1, 1, 1.35, 1, 1, 1, 1, 1, 1, 1]; // K: "particularly crisp, deep" rings
+// The report's own photographs (Fig. 3 left and right views) show the 13.4 mm
+// base-tier hole to the RIGHT of B and a ~20 mm hole to its left, i.e. the
+// base tier runs the other way round from Fig. 2 (the top tier matches).
+// true = follow the photographs (swap C<->F and D<->E positions).
+bottom_tier_reversed = true;
+function photo_letter(l) = !bottom_tier_reversed ? l
+  : l == "C" ? "F" : l == "F" ? "C" : l == "D" ? "E" : l == "E" ? "D" : l;
+function by_letter(l, table) = table[search([l], table_letter)[0]];
+hole_d      = [for (l = face_letter) by_letter(photo_letter(l), table_hole)];
+ring_count  = [for (l = face_letter) l == "A" ? 1 : l == "J" ? 3 : 2];  // report: A one, J three
+ridge_scale = [for (l = face_letter) l == "K" ? 1.35 : 1];  // K: "particularly crisp, deep" rings
 hole_lip_r        = 0.7;   // rounding radius of the outer hole edge
 hole_inner_chamfer= 0.5;   // chamfer on the cavity side of each hole
 
@@ -124,7 +134,7 @@ function groove_radii(rh, i) =
   [for (k = [0:ring_count[i] - 1]) L[0] - k * L[1] + 0.08 * rnd(i, 20 + k)];
 
 echo(str("corner radius (no knob) = ", corner_r, " mm; flat face in-circle = ", flat_face_r, " mm"));
-for (i = [0:11]) echo(str("face ", i, " (", face_letter[i], "): hole ", hole_d[i],
+for (i = [0:11]) echo(str("face ", i, " (key position ", face_letter[i], "): hole ", hole_d[i],
                          " mm, grooves at r = ", groove_radii(hole_d[i] / 2, i)));
 echo(str("knob ball centre ", knob_ball_z, " mm above the rounded corner"));
 

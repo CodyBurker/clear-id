@@ -35,7 +35,23 @@ It checks the result against Fig. 2's adjacencies (C touches I and J, F touches 
 | Lower-left | E |
 | Lower-right | D |
 
-The report's remark that Face K's rings are especially crisp matches the very crisp front face in that photo. In the `.scad` this is `face_letter = [C, A, E, F, K, D, J, L, G, B, I, H]` for face indices 0–11.
+The report's remark that Face K's rings are especially crisp matches the very crisp front face in that photo.
+
+**Check against Fig. 3.** I re-rendered the STL from Fig. 3's six viewpoints (`scripts/lineup.py`) and measured the dark openings in the photos against the scale bar. To do this I thresholded the dark pixels and fitted ellipses with the same spread to get each hole's long axis. In each side view the camera looks at a corner where one base-tier face (below) meets two top-tier faces (above):
+
+| View | Upper-left | Upper-right | Lower |
+|---|---|---|---|
+| Front | 17.9 mm (I = 17.5) | 18.6 mm (H = 17.6) | 21.0 mm (B = 20.3) |
+| Left | 9.8 mm (J = 9.9) | 17.6 mm (I = 17.5) | 20.9 mm (key says C = 13.4) |
+| Right | 17.0 mm (H = 17.6) | 17.7 mm (L = 17) | 13.1 mm (key says F = 20) |
+
+- The upper tier matches Fig. 2 exactly.
+- The base tier runs the other way round from Fig. 2.
+- I also tested a full mirror image and 90° camera turns between shots. Neither fits.
+- So `bottom_tier_reversed = true` in the `.scad` places the base-tier sizes as photographed.
+- The bottom view can't confirm or contradict this, because the in-plane rotation of that photo is unknown.
+
+In the `.scad`, `face_letter = [C, A, E, F, K, D, J, L, G, B, I, H]` gives the key position of each face index (0–11); with the reversal, hole sizes come from `[F, A, D, C, K, E, J, L, G, B, I, H]`.
 
 ## Knob height
 

@@ -29,6 +29,9 @@ ap.add_argument("--fov", type=float, default=17.5)
 ap.add_argument("--front-face", type=int, default=4)
 ap.add_argument("--roll", type=float, default=0.0)
 ap.add_argument("--ortho", type=float, default=0.0, help="parallel projection, half-height in mm")
+ap.add_argument("--dir", default=None, help="view: camera direction x,y,z (native .scad frame)")
+ap.add_argument("--vup", default=None, help="view: screen-up vector x,y,z (native .scad frame)")
+ap.add_argument("--bg", default="grad", help="grad or white")
 a = ap.parse_args()
 
 reader = vtk.vtkSTLReader(); reader.SetFileName(a.stl); reader.Update()
@@ -71,7 +74,10 @@ p.SetSpecularColor(1.0, 0.85, 0.55)
 p.SetInterpolationToPhong()
 
 ren = vtk.vtkRenderer(); ren.AddActor(actor)
-ren.SetBackground(0.86, 0.85, 0.83); ren.SetBackground2(0.97, 0.96, 0.94); ren.GradientBackgroundOn()
+if a.bg == "white":
+    ren.SetBackground(1, 1, 1)
+else:
+    ren.SetBackground(0.86, 0.85, 0.83); ren.SetBackground2(0.97, 0.96, 0.94); ren.GradientBackgroundOn()
 ren.SetUseFXAA(True)
 win = vtk.vtkRenderWindow(); win.SetOffScreenRendering(1); win.SetSize(a.size, a.size); win.AddRenderer(ren)
 win.SetMultiSamples(0)
@@ -87,6 +93,10 @@ elif a.view == "print":                # as it sits on the bed, from the side
     pn = FACE_N[a.print_face]; m = -pn
     Rp = rot([-m[1], m[0], 0], -np.arccos(m[2]))
     d = Rp.T @ (d / np.linalg.norm(d)); vu = Rp.T @ vu
+elif a.view == "dir":                  # explicit camera direction / up vector
+    d = np.array([float(t) for t in a.dir.split(",")]); d /= np.linalg.norm(d)
+    vu = np.array([float(t) for t in a.vup.split(",")])
+    vu = vu - (vu @ d) * d; vu /= np.linalg.norm(vu)
 elif a.view == "side":                 # resting on --print-face, looking at --front-face
     vu = -FACE_N[a.print_face]
     h = front - (front @ vu) * vu; h /= np.linalg.norm(h)
@@ -104,6 +114,8 @@ ren.ResetCameraClippingRange()
 def light(pos, inten, col):
     L = vtk.vtkLight(); L.SetLightTypeToSceneLight(); L.SetPosition(*pos); L.SetFocalPoint(0, 0, 0)
     L.SetIntensity(inten); L.SetColor(*col); L.SetPositional(False); ren.AddLight(L)
+if a.view in ("dir", "side"):            # light relative to this camera, not the photo view
+    up = vu; right = np.cross(vu, d)
 key_dir = d * 0.5 + right * 1.0 + up * 0.6     # warm key from the right, like the photo
 light(key_dir * 200, 0.95, (1.0, 0.86, 0.6))
 light((d * 0.8 - right * 0.9 + up * 0.3) * 200, 0.35, (0.75, 0.82, 0.9))
