@@ -1,0 +1,3 @@
+; filament used [cm3] = 37.04
+; estimated printing time (normal mode) = 9h 51m 2s
+layers: 528

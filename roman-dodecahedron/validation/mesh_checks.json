@@ -1,0 +1,36 @@
+{
+ "file": "models/roman_dodecahedron_v4.stl",
+ "triangles": 485918,
+ "vertices": 242939,
+ "bbox_mm": [
+  75.31,
+  76.94,
+  63.44
+ ],
+ "max_radius_mm": 67.23,
+ "watertight": true,
+ "winding_consistent": true,
+ "volume_cm3": 29.34,
+ "volume_positive": true,
+ "nonmanifold_edges(not_2_faces)": 0,
+ "connected_bodies": 1,
+ "euler_number": -20,
+ "genus(expected 11 for hollow shell with 12 through-holes)": 11,
+ "degenerate_faces": 0,
+ "duplicate_faces": 0,
+ "blocked_rays_per_face(of 37, centre+3 rings)": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "all_12_holes_open": true
+}
