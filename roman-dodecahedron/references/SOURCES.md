@@ -44,12 +44,13 @@ The report's remark that Face K's rings are especially crisp matches the very cr
 | Front | 17.9 mm (I = 17.5) | 18.6 mm (H = 17.6) | 21.0 mm (B = 20.3) |
 | Left | 9.8 mm (J = 9.9) | 17.6 mm (I = 17.5) | 20.9 mm (key says C = 13.4) |
 | Right | 17.0 mm (H = 17.6) | 17.7 mm (L = 17) | 13.1 mm (key says F = 20) |
+| Back | | 16.3 mm (K = 16.2) on top | |
 
-- The upper tier matches Fig. 2 exactly.
-- The base tier runs the other way round from Fig. 2.
-- I also tested a full mirror image and 90° camera turns between shots. Neither fits.
+- The front view and the whole upper tier match Fig. 2 exactly.
+- The base tier runs the other way round from Fig. 2: the 13.4 mm hole is to the right of B. The orientation-independent form of this: in the key, C (13.4) and J (9.9) share a corner; in the photos they don't.
+- Brute force over all 60 orientations of the model: literal key, best 3.4 mm RMS on the side views; base tier reversed, best 0.6 mm (at the key's own orientation). A full mirror and a top-tier-only reversal were tested too; neither fits.
 - So `bottom_tier_reversed = true` in the `.scad` places the base-tier sizes as photographed.
-- The bottom view can't confirm or contradict this, because the in-plane rotation of that photo is unknown.
+- Top and bottom photos: their in-plane rotation is unknown, so they can't distinguish the two labellings. `lineup.py` renders them at the rotation that fits each photo (top: roll 0, J at left; bottom: roll 288, 13.4 at upper-left), with an 8° camera lean (top: toward the bottom of the frame; bottom: toward the upper-right), judged from how open each surrounding hole appears.
 
 In the `.scad`, `face_letter = [C, A, E, F, K, D, J, L, G, B, I, H]` gives the key position of each face index (0–11); with the reversal, hole sizes come from `[F, A, D, C, K, E, J, L, G, B, I, H]`.
 
